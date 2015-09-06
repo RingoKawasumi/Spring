@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/rabbit
+           http://www.springframework.org/schema/rabbit/spring-rabbit.xsd">
+
+    <bean id="connectionFactory" class="org.springframework.amqp.rabbit.connection.CachingConnectionFactory">
+        <constructor-arg value="localhost"/>
+        <property name="username" value="root"/>
+        <property name="password" value="root"/>
+        <property name="channelCacheSize" value="25"/>
+    </bean>
+
+    <rabbit:connection-factory id="connectionFactory2" channel-cache-size="25"/>
+
+    <rabbit:connection-factory id="connectionFactory3" cache-mode="CONNECTION" connection-cache-size="25"/>
+
+    <rabbit:connection-factory id="connectionFactory4" host="localhost" port="5672"/>
+
+    <rabbit:connection-factory id="connectionFactory5" addresses="host1:5672,host2:5672"/>
+
+    <rabbit:connection-factory id="rabbitConnectionFactory" connection-factory="clientConnectionFactory"
+                               host="${host}" port="${port}" virtual-host="${vhost}" username="${username}"
+                               password="${password}"/>
+    <bean id="clientConnectionFactory" class="org.springframework.amqp.rabbit.connection.RabbitConnectionFactoryBean">
+        <property name="useSSL" value="true"/>
+        <property name="sslPropertiesLocation" value="file:/secrets/rabbitSSL.properties"/>
+    </bean>
+
+    <bean id="connectionFactory6" class="org.springframework.amqp.rabbit.connection.SimpleRoutingConnectionFactory">
+        <property name="targetConnectionFactories">
+            <map>
+                <entry key="#{connectionFactory1.virtualHost}" value-ref="connectionFactory"/>
+                <entry key="#{connectionFactory2.virtualHost}" value-ref="connectionFactory2"/>
+            </map>
+        </property>
+    </bean>
+    <rabbit:template id="template" connection-factory="connectionFactory"/>
+</beans>
